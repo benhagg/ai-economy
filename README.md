@@ -1,235 +1,263 @@
-# 🏦 Agentic Economy Simulation
+# AI Economy Trading Simulation
 
-An autonomous multi-agent economic system built with LangChain and local LLMs (Ollama). Agents independently trade resources to achieve their goals using AI-powered decision making.
+A multi-agent trading system where AI agents negotiate and trade resources to achieve their individual goals.
 
-## 🌟 Features
+## 🎯 Overview
 
-- **Autonomous Agents**: Multiple AI agents with different goals that make independent trading decisions
-- **Market Coordinator**: Central database system that records all transactions and manages the economy
-- **Double-Confirmation Protocol**: Transactions only execute when both parties agree
-- **LangChain Integration**: Uses LangChain for agent reasoning and decision making
-- **Local LLMs**: Runs entirely on local Ollama models - no API keys needed
-- **Real-time Negotiation**: Agents negotiate trades dynamically based on market conditions
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────┐
-│                 Market Coordinator                  │
-│  ┌─────────────────────────────────────────────┐   │
-│  │         SQLite Database                     │   │
-│  │  - Agent balances & resources               │   │
-│  │  - Transaction history                      │   │
-│  │  - Pending transactions                     │   │
-│  └─────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────┘
-           ↑                                  ↑
-           │ Read/Write                       │ Read/Write
-           │                                  │
-┌──────────┴────────┐              ┌─────────┴─────────┐
-│   Economic Agent  │◄────Talk────►│  Economic Agent   │
-│   (LangChain LLM) │              │  (LangChain LLM)  │
-│   Goal: Get $200  │              │  Goal: Get 5 gold │
-└───────────────────┘              └───────────────────┘
-```
-
-## 📋 Prerequisites
-
-1. **Python 3.8+**
-2. **Ollama** installed and running
-   - Download from: https://ollama.ai
-   - Must have at least one model pulled (see your available models below)
-
-## 🚀 Installation
-
-1. **Clone or download this project**
-   ```powershell
-   cd C:\Users\benha\Documents\projects\ai-economy
-   ```
-
-2. **Create a virtual environment** (recommended)
-   ```powershell
-   python -m venv venv
-   .\venv\Scripts\Activate.ps1
-   ```
-
-3. **Install dependencies**
-   ```powershell
-   pip install -r requirements.txt
-   ```
-
-4. **Verify Ollama is running**
-   ```powershell
-   ollama list
-   ```
-
-## ⚙️ Configuration
-
-Edit `config.py` to customize the simulation:
-
-```python
-# Choose your model from available Ollama models:
-# qwen2.5:latest, qwen:0.5b, gemma3:270M, llama3:latest, 
-# mistral:latest, gemma3:1b, deepseek-r1:8b
-MODEL_NAME = "qwen2.5:latest"
-
-# Adjust simulation parameters
-INITIAL_BALANCE = 100.0      # Starting money for each agent
-SIMULATION_ROUNDS = 10       # Number of trading rounds
-```
-
-### Recommended Models for Different Use Cases:
-
-- **Best Quality**: `qwen2.5:latest`, `llama3:latest`, `mistral:latest`
-- **Fastest**: `gemma3:270M`, `qwen:0.5b`
-- **Balanced**: `gemma3:1b`, `deepseek-r1:8b`
-
-## 🎮 Usage
-
-Run the simulation:
-
-```powershell
-python main.py
-```
-
-The simulation will:
-1. Initialize 5 agents with different goals and resources
-2. Run multiple rounds of trading negotiations
-3. Display transaction results and agent reasoning
-4. Show final results and goal achievement
-
-### Example Output:
-
-```
-🏦 AGENTIC ECONOMY SIMULATION
-🌍 Initializing Agentic Economy...
-Using model: qwen2.5:latest
-
-✅ Created Alice - Goal: Accumulate $200 in cash
-✅ Created Bob - Goal: Collect 20 units of wood
-...
-
-🔄 ROUND 1
-💼 Alice proposes to buy 5 wood from Charlie for $25.00
-   Charlie's response: ✅ ACCEPT
-   Reasoning: Good price for wood, helps my goal
-   ✅ Transaction completed successfully!
-...
-```
+This project simulates an economy where autonomous AI agents:
+- **Negotiate** trades with other agents via messages
+- **Execute** barter trades (resource-for-resource exchanges)
+- **Strategize** to achieve their unique goals
+- **Track** all transactions in a database
 
 ## 📁 Project Structure
 
 ```
 ai-economy/
-├── main.py                    # Main simulation runner
-├── economic_agent.py          # Agent class with LangChain integration
-├── market_coordinator.py      # Database manager and transaction validator
-├── transaction_protocol.py    # Trade negotiation logic
-├── config.py                  # Configuration settings
-├── requirements.txt           # Python dependencies
-├── .gitignore                # Git ignore rules
-└── README.md                 # This file
+├── config.py              # ⚙️ Centralized configuration (agents, prompts, settings)
+├── main.py               # 🚀 Main entry point - runs the simulation
+├── TradingAgent.py       # 🤖 Agent class with LLM and tools
+├── EconomyDB.py          # 💾 SQLite database manager
+├── AgentCommunication.py # 📡 Inter-agent messaging registry
+├── test.py               # ✅ Comprehensive test suite
+└── requirements.txt      # 📦 Python dependencies
 ```
 
-## 🔧 How It Works
+## ⚙️ Configuration (config.py)
 
-### 1. Agents
-Each agent:
-- Has a specific goal (e.g., "Accumulate $200")
-- Uses a local LLM to make decisions
-- Can view market state (other agents' resources and prices)
-- Negotiates trades to achieve their goal
+All simulation settings are centralized in `config.py`:
 
-### 2. Market Coordinator
-- Maintains SQLite database with all economic data
-- Validates transactions (checks balances and resources)
-- Only executes transactions when both parties confirm
-- Provides market summary and history
-
-### 3. Transaction Flow
-1. Agent A decides to trade with Agent B
-2. Agent A proposes a trade (buy/sell resource X for price Y)
-3. Agent B evaluates the proposal using LLM reasoning
-4. If both agree, transaction is created as "pending"
-5. Both agents confirm → Coordinator validates and executes
-6. Database is updated with new balances and resources
-
-## 🎯 Agent Goals (Customizable)
-
-Current agents have these goals:
-- **Alice**: Accumulate $200 in cash
-- **Bob**: Collect 20 units of wood
-- **Charlie**: Get 5 units of gold
-- **Diana**: Accumulate $150 while keeping at least 5 iron
-- **Eve**: Collect diverse resources: 5 wood, 5 stone, 5 iron
-
-You can modify agent goals in `main.py` under the `initialize_economy()` function.
-
-## 🔬 Experimentation Ideas
-
-1. **Different Models**: Try different Ollama models to see how agent behavior changes
-2. **More Agents**: Add more agents with competing goals
-3. **Resource Scarcity**: Start agents with fewer resources to create competition
-4. **Different Goals**: Create complex multi-objective goals
-5. **Market Events**: Add random events (price changes, resource discoveries)
-6. **Agent Personalities**: Give agents different "personalities" via system prompts
-
-## 📊 Database Schema
-
-The SQLite database (`economy.db`) contains:
-
-- **agents**: Agent ID, name, balance, goal
-- **resources**: Agent resources and quantities
-- **pending_transactions**: Awaiting confirmation
-- **transactions**: Completed transaction history
-
-You can inspect the database using:
-```powershell
-sqlite3 economy.db
-.tables
-SELECT * FROM transactions;
+### LLM Settings
+```python
+OLLAMA_BASE_URL = "http://localhost:11434"
+DEFAULT_MODEL = "qwen2.5:latest"
+MODEL_TEMPERATURE = 0.7
 ```
 
-## 🐛 Troubleshooting
+### Agent Definitions
+```python
+AGENTS = [
+    {
+        "name": "Alice",
+        "goal": "Collect 10 or more ore",
+        "model": "qwen2.5:latest",
+        "initial_resources": {
+            "wool": 0, "lumber": 5, "grain": 0, 
+            "brick": 0, "ore": 100
+        }
+    },
+    # ... more agents
+]
+```
 
-**"Connection refused" error**
-- Make sure Ollama is running: `ollama serve`
+### System Prompts
+- `AGENT_SYSTEM_PROMPT` - Defines agent behavior and available tools
+- `AGENT_INITIAL_MESSAGE` - Instructions given to agents each turn
+- `AGENT_REFLECTION_PROMPT` - Post-simulation reflection prompt
 
-**Agents not making trades**
-- Try a more capable model like `qwen2.5:latest` or `llama3:latest`
-- Increase `SIMULATION_ROUNDS` in config.py
-- Check that agents have compatible resources
+### Simulation Settings
+- `MAX_ITERATIONS_PER_TURN` - Tool call limit per agent turn (default: 10)
+- `MIN_ACTIVE_AGENTS` - Minimum active agents before ending (default: 1)
 
-**Slow performance**
-- Use a smaller model like `gemma3:270M` or `qwen:0.5b`
-- Reduce number of agents or simulation rounds
-- Ensure Ollama has adequate system resources
+## 🚀 Quick Start
 
-**JSON parsing errors**
-- Some models struggle with JSON formatting
-- Try a more capable model
-- The code has fallback handling for this
+### 1. Install Dependencies
+```bash
+pip install -r requirements.txt
+```
 
-## 📝 License
+### 2. Start Ollama
+Ensure Ollama is running locally:
+```bash
+ollama serve
+```
 
-This project is open source and available for educational purposes.
+### 3. Run the Simulation
+```bash
+python main.py
+```
+
+### 4. Run Tests
+```bash
+python test.py
+```
+
+## 🤖 How Agents Work
+
+### Available Tools
+
+Each agent has access to these tools:
+
+1. **view_my_status()** - Check own resources
+2. **view_other_agents()** - See all agents and their resources
+3. **view_active_agents()** - List agents still trading
+4. **view_market_history()** - Review recent transactions
+5. **send_message(recipient, message)** - Negotiate with other agents
+6. **record_trade(...)** - Execute agreed trades (updates database)
+7. **end_turn()** - Pass control to next agent
+8. **finish_trading()** - Withdraw from trading
+
+### Trade Execution
+
+Agents use the simplified `record_trade` tool:
+
+```python
+record_trade(
+    other_agent="Bob",           # Who you're trading with
+    i_give_resource="wool",      # What you're giving
+    i_give_quantity=5,
+    i_receive_resource="ore",    # What you're receiving
+    i_receive_quantity=3
+)
+```
+
+### Multi-Turn Tool Calling
+
+Agents can:
+- Call multiple tools in sequence
+- See tool results and adapt strategy
+- Continue until they call `end_turn()` or reach max iterations
+
+## 💾 Database Schema
+
+### Agents Table
+```sql
+CREATE TABLE agents (
+    name TEXT PRIMARY KEY,
+    wool INTEGER DEFAULT 0,
+    lumber INTEGER DEFAULT 0,
+    grain INTEGER DEFAULT 0,
+    brick INTEGER DEFAULT 0,
+    ore INTEGER DEFAULT 0
+)
+```
+
+### Transactions Table
+```sql
+CREATE TABLE transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    buyer TEXT NOT NULL,
+    seller TEXT NOT NULL,
+    buyer_resource TEXT NOT NULL,
+    seller_resource TEXT NOT NULL,
+    buyer_quantity INTEGER NOT NULL,
+    seller_quantity INTEGER NOT NULL,
+    timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+)
+```
+
+## 🧪 Testing
+
+The test suite (`test.py`) covers:
+
+- ✅ **Database operations** (8 tests)
+- ✅ **Agent communication** (8 tests)
+- ✅ **Trading tools** (10 tests)
+- ✅ **Conversation management** (2 tests)
+
+Run tests with:
+```bash
+python test.py
+```
+
+## 🔧 Debugging
+
+VS Code launch configurations are provided in `.vscode/launch.json`:
+
+1. **Python: Debug Main** - Debug the main simulation
+2. **Python: Debug Current File** - Debug any Python file
+3. **Python: Debug Agent with Breakpoints** - Step through agent execution
+
+Set breakpoints in `TradingAgent.py` to inspect:
+- Tool invocations
+- LLM responses
+- Message passing
+
+## 📝 Customization
+
+### Adding a New Agent
+
+Edit `config.py`:
+```python
+AGENTS.append({
+    "name": "Charlie",
+    "goal": "Your custom goal here",
+    "model": "qwen2.5:latest",
+    "initial_resources": {
+        "wool": 10, "lumber": 20, "grain": 5,
+        "brick": 3, "ore": 1
+    }
+})
+```
+
+### Changing Prompts
+
+Modify prompts in `config.py`:
+- `AGENT_SYSTEM_PROMPT` - Agent personality and instructions
+- `AGENT_INITIAL_MESSAGE` - Turn-by-turn instructions
+- `AGENT_REFLECTION_PROMPT` - Post-game analysis
+
+### Using Different Models
+
+Update the model in agent config or change `DEFAULT_MODEL`:
+```python
+"model": "llama3.2:latest"  # or any Ollama model
+```
+
+## 🏗️ Architecture
+
+### Key Design Patterns
+
+1. **Centralized Configuration** - All settings in `config.py`
+2. **Tool-Based Agency** - LangChain tools for agent capabilities
+3. **Registry Pattern** - `AgentCommunication` for global agent lookup
+4. **Iterative Execution** - Agents loop until `end_turn()` or max iterations
+
+### Message Flow
+
+```
+Agent A → send_message(B, "offer") → AgentCommunication → Agent B's conversation_log
+                                                                ↓
+Agent B → act() → reads conversation_log → send_message(A, "accept")
+                                                                ↓
+Agent A → reads message → record_trade() → Database updated
+```
+
+## 📊 Output Example
+
+```
+🏦 SIMPLE AGENTIC ECONOMY
+============================================================
+
+📝 Setting up agents...
+  ✓ Alice - Goal: Collect 10 or more ore
+  ✓ Bob - Goal: Collect 15 units of wool
+  ✓ Randy - Goal: [fraudster goal]
+
+✅ 3 agents created!
+
+💬 TRADE NEGOTIATION
+============================================================
+
+🔵 ALICE'S TURN
+------------------------------------------------------------
+Alice is thinking...
+Alice says: I'll check my status and see who has ore...
+Alice is using tools...
+  Tool: view_my_status({})
+  Result: name | wool | lumber | grain | brick | ore
+          Alice | 0 | 5 | 0 | 0 | 100
+...
+```
 
 ## 🤝 Contributing
 
 Feel free to:
-- Add new agent strategies
-- Improve negotiation protocols
-- Add new resource types
-- Create visualization tools
-- Enhance the database schema
+- Add new agent types
+- Enhance trading logic
+- Improve negotiation strategies
+- Add more comprehensive tests
 
-## 🙏 Acknowledgments
+## 📄 License
 
-Built with:
-- [LangChain](https://github.com/langchain-ai/langchain) - Agent framework
-- [Ollama](https://ollama.ai) - Local LLM runtime
-- SQLite - Embedded database
-
----
-
-**Happy Trading! 🎉**
+MIT License - See project for details

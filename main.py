@@ -1,168 +1,89 @@
 """
-Main simulation runner for the agentic economy
+Simple main runner - Multi-agent trading simulation
 """
-import random
-import time
-from market_coordinator import MarketCoordinator
-from economic_agent import EconomicAgent
-from transaction_protocol import TransactionProtocol
-from config import INITIAL_BALANCE, SIMULATION_ROUNDS, MODEL_NAME
-import itertools
-
-
-def initialize_economy():
-    """Set up the economy with agents and initial resources"""
-    print("🌍 Initializing Agentic Economy...")
-    print(f"Using model: {MODEL_NAME}\n")
-    
-    # Create market coordinator
-    coordinator = MarketCoordinator()
-    
-    # Define agents with different goals
-    agent_configs = [
-        {
-            "name": "Alice",
-            "goal": "Accumulate $200 in cash",
-            "resources": {"wood": 20, "stone": 5}
-        },
-        {
-            "name": "Bob",
-            "goal": "Collect 20 units of wood",
-            "resources": {"iron": 8, "gold": 2}
-        }
-    ]
-    
-    # Create and register agents
-    agents = []
-    for config in agent_configs:
-        agent_id = f"agent_{config['name'].lower()}"
-        
-        # Register agent with coordinator
-        coordinator.register_agent(
-            agent_id=agent_id,
-            name=config['name'],
-            initial_balance=INITIAL_BALANCE,
-            goal=config['goal']
-        )
-        
-        # Add initial resources
-        for resource, quantity in config['resources'].items():
-            coordinator.add_resource(agent_id, resource, quantity)
-        
-        # Create agent instance
-        agent = EconomicAgent(
-            name=config['name'],
-            agent_id=agent_id,
-            goal=config['goal'],
-            coordinator=coordinator
-        )
-        agents.append(agent)
-        
-        print(f"✅ Created {agent.name} - Goal: {agent.goal}")
-    
-    print(f"\n{'='*60}")
-    print(coordinator.get_market_summary())
-    print(f"{'='*60}\n")
-    
-    return coordinator, agents
-
-
-def run_simulation_round(round_num: int, agents: list, protocol: TransactionProtocol):
-    """Run one round of the simulation"""
-    print(f"\n{'='*60}")
-    print(f"🔄 ROUND {round_num}")
-    print(f"{'='*60}\n")
-    
-    # Shuffle agent pairs to create random interactions
-    agent_pairs = list(itertools.combinations(agents, 2))
-    random.shuffle(agent_pairs)
-    
-    # Limit to a few negotiations per round to avoid overwhelming output
-    max_negotiations = min(3, len(agent_pairs))
-    
-    for i in range(max_negotiations):
-        agent1, agent2 = agent_pairs[i]
-        
-        # Random chance to skip this pairing
-        if random.random() < 0.3:
-            continue
-            
-        # Try to facilitate a trade
-        protocol.facilitate_negotiation(agent1, agent2)
-        
-        # Small delay to avoid overwhelming the LLM
-        time.sleep(10.5)
-    
-    # At the end of round, have agents reflect on their progress
-    print(f"\n💭 Agent Reflections:")
-    for agent in agents:
-        reflection = agent.reflect_on_progress()
-        print(f"   {agent.name}: {reflection[:150]}...")
-
-
-def display_final_results(coordinator: MarketCoordinator, agents: list):
-    """Display final state of the economy"""
-    print(f"\n\n{'='*60}")
-    print("🏆 FINAL RESULTS")
-    print(f"{'='*60}\n")
-    
-    print(coordinator.get_market_summary())
-    
-    print("\n📊 Goal Achievement Analysis:")
-    for agent in agents:
-        info = coordinator.get_agent_info(agent.agent_id)
-        print(f"\n{agent.name}:")
-        print(f"  Goal: {agent.goal}")
-        print(f"  Final Balance: ${info['balance']:.2f}")
-        print(f"  Final Resources: {info['resources']}")
-        
-        # Simple goal check (you could make this more sophisticated)
-        if "200" in agent.goal and info['balance'] >= 200:
-            print(f"  Status: ✅ GOAL ACHIEVED!")
-        elif "150" in agent.goal and info['balance'] >= 150:
-            print(f"  Status: ✅ GOAL ACHIEVED!")
-        elif "20 units of wood" in agent.goal and info['resources'].get('wood', 0) >= 20:
-            print(f"  Status: ✅ GOAL ACHIEVED!")
-        elif "5 units of gold" in agent.goal and info['resources'].get('gold', 0) >= 5:
-            print(f"  Status: ✅ GOAL ACHIEVED!")
-        else:
-            print(f"  Status: 🔄 In Progress")
-    
-    # Transaction statistics
-    transactions = coordinator.get_transaction_history(100)
-    total_volume = sum(tx['price'] for tx in transactions)
-    
-    print(f"\n📈 Market Statistics:")
-    print(f"  Total Transactions: {len(transactions)}")
-    print(f"  Total Trading Volume: ${total_volume:.2f}")
-    print(f"  Average Transaction: ${total_volume/len(transactions):.2f}" if transactions else "  No transactions")
+from EconomyDB import EconomyDB
+from TradingAgent import TradingAgent
+from AgentCommunication import AgentCommunication
+from config import AGENTS, AGENT_INITIAL_MESSAGE, MIN_ACTIVE_AGENTS
 
 
 def main():
-    """Main entry point for the simulation"""
     print("=" * 60)
-    print("🏦 AGENTIC ECONOMY SIMULATION")
+    print("🏦 SIMPLE AGENTIC ECONOMY")
     print("=" * 60)
+    print()
     
-    # Initialize the economy
-    coordinator, agents = initialize_economy()
+    # Initialize database
+    db = EconomyDB()
     
-    # Create transaction protocol
-    protocol = TransactionProtocol(coordinator)
+    # Create agents from config
+    print("📝 Setting up agents...")
+    agents = []
     
-    # Run simulation rounds
-    for round_num in range(1, SIMULATION_ROUNDS + 1):
-        run_simulation_round(round_num, agents, protocol)
+    for agent_config in AGENTS:
+        # Initialize agent in database with resources
+        db.init_agent(
+            name=agent_config["name"],
+            **agent_config["initial_resources"]
+        )
         
-        # Small delay between rounds
-        time.sleep(1)
+        # Create agent instance
+        agent = TradingAgent(
+            name=agent_config["name"],
+            model=agent_config["model"],
+            db=db,
+            goal=agent_config["goal"]
+        )
+        
+        # Register agent for communication
+        AgentCommunication.register_agent(agent_config["name"], agent)
+        agents.append(agent)
+        print(f"  ✓ {agent_config['name']} - Goal: {agent_config['goal']}")
     
-    # Display final results
-    display_final_results(coordinator, agents)
+    print(f"\n✅ {len(agents)} agents created!")
+    print("\n" + db.get_all_agents() + "\n")
     
-    print(f"\n{'='*60}")
-    print("✅ Simulation Complete!")
-    print(f"{'='*60}\n")
+    # Conversation rounds
+    print("=" * 60)
+    print("💬 TRADE NEGOTIATION")
+    print("=" * 60 + "\n")
+    
+    # Trading loop - continues until enough agents finish
+    while len(AgentCommunication.get_active_agents()) > MIN_ACTIVE_AGENTS:
+        for agent, done in AgentCommunication._agents.values():
+            print(f"🔵 {agent.name}'S TURN")
+            print("-" * 60)
+            if done:
+                print(f"⏭️ {agent.name} has finished trading and will skip their turn.\n")
+                continue
+            
+            agent_response = agent.act(AGENT_INITIAL_MESSAGE)
+            print()
+    
+    print("\n" + "=" * 60)
+    print("🏁 TRADING SESSION ENDED")
+    print("=" * 60 + "\n")
+    
+    # Agent reflection phase
+    print("=" * 60)
+    print("💭 AGENT REFLECTIONS")
+    print("=" * 60 + "\n")
+    
+    for agent in agents:
+        print(f"🔍 {agent.name}'s Reflection:")
+        print("-" * 60)
+        reflection = agent.reflect()
+        print(f"{agent.name}: {reflection}")
+        print()
+    
+    # Show final state
+    print("=" * 60)
+    print("📊 FINAL STATE")
+    print("=" * 60 + "\n")
+    print("Agents:")
+    print(db.get_all_agents() + "\n")
+    print("Transactions:")
+    print(db.get_recent_transactions() + "\n")
 
 
 if __name__ == "__main__":
