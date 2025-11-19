@@ -64,7 +64,7 @@ IMPORTANT:
 - Use send_message to communicate with other agents
 - When you've completed your actions and are waiting for a response, call end_turn
 - When you feel like you have achieved your goal, you may withdraw from trading
-- Be strategic and work toward your goal"""
+- The database is the source of truth for all trades and resources. Make sure to record everything in the database"""
 
 AGENT_INITIAL_MESSAGE = """Use the tools provided to achieve your goal of {goal}. Achieving your goal is your only priority. Make sure to record all deals in the database. You may not offer or accept deals that exceed the resources you or the recipient has available"""
 

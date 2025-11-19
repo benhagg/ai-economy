@@ -109,6 +109,13 @@ class TestEconomyDB(unittest.TestCase):
         self.assertIn("ore", result)
         self.assertIn("3", result)
 
+    def test_get_schema(self):
+        """Test database schema retrieval"""
+        schema = self.db.get_schema()
+        # make sure the table names are in the schema
+        self.assertIn("agents", schema)
+        self.assertIn("transactions", schema)
+
 
 class TestAgentCommunication(unittest.TestCase):
     """Tests for AgentCommunication class"""

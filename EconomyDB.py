@@ -101,3 +101,33 @@ class EconomyDB:
     def get_recent_transactions(self, limit: int = 10) -> str:
         """Get recent transactions"""
         return self.execute_query(f"SELECT * FROM transactions ORDER BY timestamp DESC LIMIT {limit}")
+    
+    def get_schema(self) -> str:
+        """Get database schema - all tables and their columns"""
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        
+        schema_text = "DATABASE SCHEMA:\n\n"
+        
+        try:
+            # Get all table names
+            cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+            tables = cursor.fetchall()
+            
+            # For each table, get column information
+            for table in tables:
+                table_name = table[0]
+                schema_text += f"Table: {table_name}\n"
+                
+                cursor.execute(f"PRAGMA table_info({table_name});")
+                columns = cursor.fetchall()
+                
+                # Add column info
+                for col in columns:
+                    schema_text += f"  - {col[1]} ({col[2]})\n"
+                schema_text += "\n"
+        finally:
+            conn.close()
+        
+        return schema_text
+
