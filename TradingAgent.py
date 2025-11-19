@@ -38,6 +38,16 @@ class TradingAgent:
         db = self.db
         
         @tool
+        def run_sql(sql: str) -> str:
+            """Run a SQL query against the economy database. You should use get_db_schema first to understand the database structure."""
+            return db.execute_query(sql)
+        
+        @tool
+        def get_db_schema() -> str:
+            """Get the database schema for reference"""
+            return db.get_schema()
+        
+        @tool
         def view_my_status() -> str:
             """View my current balance and resources"""
             return db.get_agent_info(agent_name)
@@ -168,7 +178,7 @@ class TradingAgent:
             except Exception as e:
                 return f"Error executing trade: {e}"
         
-        return [view_my_status, view_other_agents, view_market_history, record_trade, send_message, end_turn, finish_trading, view_active_agents]
+        return [run_sql, get_db_schema, view_my_status, view_other_agents, view_market_history, record_trade, send_message, end_turn, finish_trading, view_active_agents]
     
     def act(self, message: str = None, max_iterations: int = None) -> str:
         """Have the agent respond to a message using tools, with support for multiple tool calls"""
@@ -211,8 +221,6 @@ class TradingAgent:
             
             # Call LLM with tools
             response = self.llm_with_tools.invoke(messages)
-            for chunk in response.stream():
-                print(chunk.content, end="", flush=True)
             
             if response.content:
                 print(f"{self.name} says: {response.content}")
@@ -257,7 +265,7 @@ class TradingAgent:
                             ))
                 
                 # If turn ended, break the loop
-                if :
+                if turn_ended:
                     break
                     
             else:

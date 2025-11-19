@@ -58,7 +58,7 @@ def main():
                 continue
             
             agent_response = agent.act(AGENT_INITIAL_MESSAGE)
-            print()
+            print("agent_response:", agent_response + "\n")
     
     print("\n" + "=" * 60)
     print("🏁 TRADING SESSION ENDED")
